@@ -276,3 +276,33 @@ let randomMacAddress = () => {
     return macAddress;
 }
 console.log(randomMacAddress());
+
+//question 17
+function randomHexaNumberGenerator() {
+    const hex = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];
+
+    // Generate a random length for the hexadecimal number (between 1 and 8 characters)
+    const hexLen = Math.floor(Math.random() * 8) + 1;
+
+    const result = [];
+    for (let index = 0; index < hexLen; index++) {
+        const element = hex[Math.floor(Math.random() * hex.length)];
+        result.push(element);
+    }
+
+    // Join the elements without separators to form the hexadecimal number
+    const hexNumber = result.join('');
+
+    return hexNumber;
+}
+
+//question 18
+function userIdGenerator() {
+    const character = `0123456789AaBbCcDdEeFfGgHhIiKkLlMmNnOoPpQqRrSsTtUuVvWwYyZz`
+    let userId = ''
+    for (let index = 0; index < 6; index++) {
+        const element =  Math.floor(Math.random() * character.length);
+        userId += character[randomIndex];
+    }
+    return userId;
+}
