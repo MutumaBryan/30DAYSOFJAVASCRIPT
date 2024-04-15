@@ -1,0 +1,793 @@
+# Day 20 JavaScript Style Guide
+
+Styleguides are important to aid in readability and consistency of code while working on a team.
+
+# `Airbnb JavaScript Style Guide`
+Airbnb has one of the most popular JavaScript style guides on the internet. It covers nearly every aspect of JavaScript as well and it is adopted by many developer and companies.
+
+## ` Types`
+
+#### 1.1 Primitives: 
+When you access a primitive type you work directly on its value.
+
+string
+number
+boolean
+null
+undefined
+symbol
+bigint
+
+const foo = 1;
+let bar = foo;
+
+bar = 9;
+
+console.log(foo, bar); // => 1, 9
+Symbols and BigInts cannot be faithfully polyfilled, so they should not be used when targeting browsers/environments that don’t support them natively.
+
+#### Complex: 
+When you access a complex type you work on a reference to its value.
+
+    object
+    array
+    function
+
+    const foo = [1, 2];
+    const bar = foo;
+
+    bar[0] = 9;
+
+    console.log(foo[0], bar[0]); // => 9, 9
+
+## `Objects`
+Use the literal syntax for object creation:
+    // bad
+    const item = new Object();
+
+    // good
+    const item = {};
+
+Use computed property names when creating objects with dynamic property names.
+Why? They allow you to define all the properties of an object in one place.
+    function getKey(k) {
+    return `a key named ${k}`;
+    }
+
+    // bad
+    const obj = {
+    id: 5,
+    name: 'San Francisco',
+    };
+    obj[getKey('enabled')] = true;
+
+    // good
+    const obj = {
+    id: 5,
+    name: 'San Francisco',
+    [getKey('enabled')]: true,
+    };
+
+Use object method shorthand.
+    // bad
+    const atom = {
+    value: 1,
+
+    addValue: function (value) {
+        return atom.value + value;
+    },
+    };
+
+    // good
+    const atom = {
+    value: 1,
+
+    addValue(value) {
+        return atom.value + value;
+    },
+    };
+
+Use property value shorthand because it is short and descriptive.
+    const lukeSkywalker = 'Luke Skywalker';
+
+    // bad
+    const obj = {
+    lukeSkywalker: lukeSkywalker,
+    };
+
+    // good
+    const obj = {
+    lukeSkywalker,
+    };
+
+Group your shorthand properties at the beginning of your object declaration.
+Why? It’s easier to tell which properties are using the shorthand.
+    const anakinSkywalker = 'Anakin Skywalker';
+    const lukeSkywalker = 'Luke Skywalker';
+
+    // bad
+    const obj = {
+    episodeOne: 1,
+    twoJediWalkIntoACantina: 2,
+    lukeSkywalker,
+    episodeThree: 3,
+    mayTheFourth: 4,
+    anakinSkywalker,
+    };
+
+    // good
+    const obj = {
+    lukeSkywalker,
+    anakinSkywalker,
+    episodeOne: 1,
+    twoJediWalkIntoACantina: 2,
+    episodeThree: 3,
+    mayTheFourth: 4,
+    };
+
+Only quote properties that are invalid identifiers
+Why? In general we consider it subjectively easier to read. It improves syntax highlighting, and is also more easily optimized by many JS engines.
+    // bad
+    const bad = {
+    'foo': 3,
+    'bar': 4,
+    'data-blah': 5,
+    };
+
+    // good
+    const good = {
+    foo: 3,
+    bar: 4,
+    'data-blah': 5,
+    };
+
+Do not call Object.prototype methods directly, such as hasOwnProperty, propertyIsEnumerable, and isPrototypeOf
+Why? These methods may be shadowed by properties on the object in question - consider { hasOwnProperty: false } - or, the object may be a null object (Object.create(null)). In modern browsers that support ES2022, or with a polyfill such as https://npmjs.com/object.hasown, Object.hasOwn can also be used as an alternative to Object.prototype.hasOwnProperty.call.
+
+    // bad
+    console.log(object.hasOwnProperty(key));
+
+    // good
+    console.log(Object.prototype.hasOwnProperty.call(object, key));
+
+    // better
+    const has = Object.prototype.hasOwnProperty; // cache the lookup once, in module scope.
+    console.log(has.call(object, key));
+
+    // best
+    console.log(Object.hasOwn(object, key)); // only supported in browsers that support ES2022
+
+    /* or */
+    import has from 'has'; // https://www.npmjs.com/package/has
+    console.log(has(object, key));
+    /* or */
+    console.log(Object.hasOwn(object, key)); // https://www.npmjs.com/package/object.hasown
+
+Prefer the object spread syntax over Object.assign to `shallow-copy` objects. Use the object rest parameter syntax to get a new object with certain properties omitted
+
+    // very bad
+    const original = { a: 1, b: 2 };
+    const copy = Object.assign(original, { c: 3 }); // this mutates `original` ಠ_ಠ
+    delete copy.a; // so does this
+
+    // bad
+    const original = { a: 1, b: 2 };
+    const copy = Object.assign({}, original, { c: 3 }); // copy => { a: 1, b: 2, c: 3 }
+
+    // good
+    const original = { a: 1, b: 2 };
+    const copy = { ...original, c: 3 }; // copy => { a: 1, b: 2, c: 3 }
+
+    const { a, ...noA } = copy; // noA => { b: 2, c: 3 }
+
+## `Arrays`
+Use the literal syntax for array creation. 
+
+    // bad
+    const items = new Array();
+
+    // good
+    const items = [];
+
+Use Array#push instead of direct assignment to add items to an array.
+
+    const someStack = [];
+
+    // bad
+    someStack[someStack.length] = 'abracadabra';
+
+    // good
+    someStack.push('abracadabra');
+
+Use array spreads ... to copy arrays.
+
+    // bad
+    const len = items.length;
+    const itemsCopy = [];
+    let i;
+
+    for (i = 0; i < len; i += 1) {
+    itemsCopy[i] = items[i];
+    }
+
+    // good
+    const itemsCopy = [...items];
+
+To convert an iterable object to an array, use spreads ... instead of Array.from
+
+    const foo = document.querySelectorAll('.foo');
+
+    // good
+    const nodes = Array.from(foo);
+
+    // best
+    const nodes = [...foo];
+
+Use Array.from for converting an array-like object to an array.
+
+    const arrLike = { 0: 'foo', 1: 'bar', 2: 'baz', length: 3 };
+
+    // bad
+    const arr = Array.prototype.slice.call(arrLike);
+
+    // good
+    const arr = Array.from(arrLike);
+
+Use Array.from instead of spread ... for mapping over iterables, because it avoids creating an intermediate array.
+
+    // bad
+    const baz = [...foo].map(bar);
+
+    // good
+    const baz = Array.from(foo, bar);
+
+Use return statements in array method callbacks. 
+It’s ok to omit the return if the function body consists of a single statement returning an expression without side effects
+
+    // good
+    [1, 2, 3].map((x) => {
+    const y = x + 1;
+    return x * y;
+    });
+
+    // good
+    [1, 2, 3].map((x) => x + 1);
+
+    // bad - no returned value means `acc` becomes undefined after the first iteration
+    [[0, 1], [2, 3], [4, 5]].reduce((acc, item, index) => {
+    const flatten = acc.concat(item);
+    });
+
+    // good
+    [[0, 1], [2, 3], [4, 5]].reduce((acc, item, index) => {
+    const flatten = acc.concat(item);
+    return flatten;
+    });
+
+    // bad
+    inbox.filter((msg) => {
+    const { subject, author } = msg;
+    if (subject === 'Mockingbird') {
+        return author === 'Harper Lee';
+    } else {
+        return false;
+    }
+    });
+
+    // good
+    inbox.filter((msg) => {
+    const { subject, author } = msg;
+    if (subject === 'Mockingbird') {
+        return author === 'Harper Lee';
+    }
+
+    return false;
+    });
+
+Use line breaks after opening array brackets and before closing array brackets, if an array has multiple lines.
+    // bad
+    const arr = [
+    [0, 1], [2, 3], [4, 5],
+    ];
+
+    const objectInArray = [{
+    id: 1,
+    }, {
+    id: 2,
+    }];
+
+    const numberInArray = [
+    1, 2,
+    ];
+
+    // good
+    const arr = [[0, 1], [2, 3], [4, 5]];
+
+    const objectInArray = [
+    {
+        id: 1,
+    },
+    {
+        id: 2,
+    },
+    ];
+
+    const numberInArray = [
+    1,
+    2,
+    ];
+
+## `Destructuring`
+Use object destructuring when accessing and using multiple properties of an object.
+Why? Destructuring saves you from creating temporary references for those properties, and from repetitive access of the object. Repeating object access creates more repetitive code, requires more reading, and creates more opportunities for mistakes. Destructuring objects also provides a single site of definition of the object structure that is used in the block, rather than requiring reading the entire block to determine what is used.
+
+    // bad
+    function getFullName(user) {
+    const firstName = user.firstName;
+    const lastName = user.lastName;
+
+    return `${firstName} ${lastName}`;
+    }
+
+    // good
+    function getFullName(user) {
+    const { firstName, lastName } = user;
+    return `${firstName} ${lastName}`;
+    }
+
+    // best
+    function getFullName({ firstName, lastName }) {
+    return `${firstName} ${lastName}`;
+    }
+
+Use array destructuring.
+
+    const arr = [1, 2, 3, 4];
+
+    // bad
+    const first = arr[0];
+    const second = arr[1];
+
+    // good
+    const [first, second] = arr;
+
+Use object destructuring for multiple return values, not array destructuring.
+Why? You can add new properties over time or change the order of things without breaking call sites.
+
+    // bad
+    function processInput(input) {
+    // then a miracle occurs
+    return [left, right, top, bottom];
+    }
+
+    // the caller needs to think about the order of return data
+    const [left, __, top] = processInput(input);
+
+    // good
+    function processInput(input) {
+    // then a miracle occurs
+    return { left, right, top, bottom };
+    }
+
+    // the caller selects only the data they need
+    const { left, top } = processInput(input);
+
+## `Strings`
+* Use single quotes '' for strings.
+
+    // bad
+    const name = "Capt. Janeway";
+
+    // bad - template literals should contain interpolation or newlines
+    const name = `Capt. Janeway`;
+
+    // good
+    const name = 'Capt. Janeway';
+
+* Strings that cause the line to go over 100 characters should not be written across multiple lines using string concatenation.
+    Why? Broken strings are painful to work with and make code less searchable.
+
+    // bad
+    const errorMessage = 'This is a super long error that was thrown because \
+    of Batman. When you stop to think about how Batman had anything to do \
+    with this, you would get nowhere \
+    fast.';
+
+    // bad
+    const errorMessage = 'This is a super long error that was thrown because ' +
+    'of Batman. When you stop to think about how Batman had anything to do ' +
+    'with this, you would get nowhere fast.';
+
+    // good
+    const errorMessage = 'This is a super long error that was thrown because of Batman. When you stop to think about how Batman had anything to do with this, you would get nowhere fast.';
+
+* When programmatically building up strings, use template strings instead of concatenation.
+    Why? Template strings give you a readable, concise syntax with proper newlines and string interpolation features.
+
+    // bad
+    function sayHi(name) {
+    return 'How are you, ' + name + '?';
+    }
+
+    // bad
+    function sayHi(name) {
+    return ['How are you, ', name, '?'].join();
+    }
+
+    // bad
+    function sayHi(name) {
+    return `How are you, ${ name }?`;
+    }
+
+    // good
+    function sayHi(name) {
+    return `How are you, ${name}?`;
+    }
+
+* Never use eval() on a string; it opens too many vulnerabilities.
+
+* Do not unnecessarily escape characters in strings.
+    Why? Backslashes harm readability, thus they should only be present when necessary.
+    // bad
+    const foo = '\'this\' \i\s \"quoted\"';
+
+    // good
+    const foo = '\'this\' is "quoted"';
+    const foo = `my name is '${name}'`;
+
+## `Functions`
+* Use named function expressions instead of function declarations.
+    Why? Function declarations are hoisted, which means that it’s easy - too easy - to reference the function before it is defined in the file. This harms readability and maintainability. 
+    If you find that a function’s definition is large or complex enough that it is interfering with understanding the rest of the file, then perhaps it’s time to extract it to its own module! 
+    Don’t forget to explicitly name the expression, regardless of whether or not the name is inferred from the containing variable (which is often the case in modern browsers or when using compilers such as Babel). This eliminates any assumptions made about the Error’s call stack
+
+    // bad
+    function foo() {
+    // ...
+    }
+
+    // bad
+    const foo = function () {
+    // ...
+    };
+
+    // good
+    // lexical name distinguished from the variable-referenced invocation(s)
+    const short = function longUniqueMoreDescriptiveLexicalFoo() {
+    // ...
+    };
+
+* Wrap immediately invoked function expressions in parentheses
+    Why? An immediately invoked function expression is a single unit - wrapping both it, and its invocation parens, in parens, cleanly expresses this. Note that in a world with modules everywhere, you almost never need an IIFE.
+
+    // immediately-invoked function expression (IIFE)
+    (function () {
+    console.log('Welcome to the Internet. Please follow me.');
+    }());
+
+* Never declare a function in a non-function block (if, while, etc). Assign the function to a variable instead. Browsers will allow you to do it, but they all interpret it differently, which is bad news
+
+* ECMA-262 defines a block as a list of statements. A function declaration is not a statement.
+
+    // bad
+    if (currentUser) {
+    function test() {
+        console.log('Nope.');
+    }
+    }
+
+    // good
+    let test;
+    if (currentUser) {
+    test = () => {
+        console.log('Yup.');
+    };
+    }
+
+* Never name a parameter arguments. This will take precedence over the arguments object that is given to every function scope.
+    // bad
+    function foo(name, options, arguments) {
+    // ...
+    }
+
+    // good
+    function foo(name, options, args) {
+    // ...
+    }
+
+* Never use arguments, opt to use rest syntax ... instead.
+    Why? ... is explicit about which arguments you want pulled. Plus, rest arguments are a real Array, and not merely Array-like like arguments.
+    // bad
+    function concatenateAll() {
+    const args = Array.prototype.slice.call(arguments);
+    return args.join('');
+    }
+
+    // good
+    function concatenateAll(...args) {
+    return args.join('');
+    }
+
+* Use default parameter syntax rather than mutating function arguments.
+    // really bad
+    function handleThings(opts) {
+    // No! We shouldn’t mutate function arguments.
+    // Double bad: if opts is falsy it'll be set to an object which may
+    // be what you want but it can introduce subtle bugs.
+    opts = opts || {};
+    // ...
+    }
+
+    // still bad
+    function handleThings(opts) {
+    if (opts === void 0) {
+        opts = {};
+    }
+    // ...
+    }
+
+    // good
+    function handleThings(opts = {}) {
+    // ...
+    }
+
+* Avoid side effects with default parameters.
+    why ? they are confusing
+    let b = 1;
+    // bad
+    function count(a = b++) {
+    console.log(a);
+    }
+    count();  // 1
+    count();  // 2
+    count(3); // 3
+    count();  // 3
+
+* Always put default parameters last
+    // bad
+    function handleThings(opts = {}, name) {
+    // ...
+    }
+
+    // good
+    function handleThings(name, opts = {}) {
+    // ...
+    }
+
+* Never use the Function constructor to create a new function: https://eslint.org/docs/rules/no-new-func
+    // bad
+    const add = new Function('a', 'b', 'return a + b');
+
+    // still bad
+    const subtract = Function('a', 'b', 'return a - b');
+
+* Spacing in a function signature.
+    // bad
+    const f = function(){};
+    const g = function (){};
+    const h = function() {};
+
+    // good
+    const x = function () {};
+    const y = function a() {};
+
+* Never mutate parameters.
+    Why? Manipulating objects passed in as parameters can cause unwanted variable side effects in the original caller.
+    // bad
+    function f1(obj) {
+    obj.key = 1;
+    }
+
+    // good
+    function f2(obj) {
+    const key = Object.prototype.hasOwnProperty.call(obj, 'key') ? obj.key : 1;
+    }
+
+* Never reassign parameters.
+    Why? Reassigning parameters can lead to unexpected behavior, especially when accessing the arguments object. It can also cause optimization issues, especially in V8.  
+
+    // bad
+    function f1(a) {
+    a = 1;
+    // ...
+    }
+
+    function f2(a) {
+    if (!a) { a = 1; }
+    // ...
+    }
+
+    // good
+    function f3(a) {
+    const b = a || 1;
+    // ...
+    }
+
+    function f4(a = 1) {
+    // ...
+    }
+
+* Prefer the use of the spread syntax ... to call variadic functions. 
+    Why? It’s cleaner, you don’t need to supply a context, and you can not easily compose new with apply.
+
+    // bad
+    const x = [1, 2, 3, 4, 5];
+    console.log.apply(console, x);
+
+    // good
+    const x = [1, 2, 3, 4, 5];
+    console.log(...x);
+
+    // bad
+    new (Function.prototype.bind.apply(Date, [null, 2016, 8, 5]));
+
+    // good
+    new Date(...[2016, 8, 5]);
+
+* Functions with multiline signatures, or invocations, should be indented just like every other multiline list in this guide: with each item on a line by itself, with a trailing comma on the last item.
+    // bad
+    function foo(bar,
+                baz,
+                quux) {
+    // ...
+    }
+
+    // good
+    function foo(
+    bar,
+    baz,
+    quux,
+    ) {
+    // ...
+    }
+
+    // bad
+    console.log(foo,
+    bar,
+    baz);
+
+    // good
+    console.log(
+    foo,
+    bar,
+    baz,
+    );
+
+## `Arrow Functions`
+* When you must use an anonymous function (as when passing an inline callback), use arrow function notation.
+    Why? It creates a version of the function that executes in the context of this, which is usually what you want, and is a more concise syntax.
+
+    Why not? If you have a fairly complicated function, you might move that logic out into its own named function expression.
+
+    // bad
+    [1, 2, 3].map(function (x) {
+    const y = x + 1;
+    return x * y;
+    });
+
+    // good
+    [1, 2, 3].map((x) => {
+    const y = x + 1;
+    return x * y;
+    });
+
+* If the function body consists of a single statement returning an expression without side effects, omit the braces and use the implicit return. Otherwise, keep the braces and use a return statement
+    Why? Syntactic sugar. It reads well when multiple functions are chained together.
+    // bad
+    [1, 2, 3].map((number) => {
+    const nextNumber = number + 1;
+    `A string containing the ${nextNumber}.`;
+    });
+
+    // good
+    [1, 2, 3].map((number) => `A string containing the ${number + 1}.`);
+
+    // good
+    [1, 2, 3].map((number) => {
+    const nextNumber = number + 1;
+    return `A string containing the ${nextNumber}.`;
+    });
+
+    // good
+    [1, 2, 3].map((number, index) => ({
+    [index]: number,
+    }));
+
+    // No implicit return with side effects
+    function foo(callback) {
+    const val = callback();
+    if (val === true) {
+        // Do something if callback returns true
+    }
+    }
+
+    let bool = false;
+
+    // bad
+    foo(() => bool = true);
+
+    // good
+    foo(() => {
+    bool = true;
+    });
+
+* In case the expression spans over multiple lines, wrap it in parentheses for better readability.
+Why? It shows clearly where the function starts and ends.
+    // bad
+    ['get', 'post', 'put'].map((httpMethod) => Object.prototype.hasOwnProperty.call(
+        httpMagicObjectWithAVeryLongName,
+        httpMethod,
+    )
+    );
+
+    // good
+    ['get', 'post', 'put'].map((httpMethod) => (
+    Object.prototype.hasOwnProperty.call(
+        httpMagicObjectWithAVeryLongName,
+        httpMethod,
+    )
+    ));
+
+* Always include parentheses around arguments for clarity and consistency
+    Why? Minimizes diff churn when adding or removing arguments.
+        // bad
+    [1, 2, 3].map(x => x * x);
+
+    // good
+    [1, 2, 3].map((x) => x * x);
+
+    // bad
+    [1, 2, 3].map(number => (
+    `A long string with the ${number}. It’s so long that we don’t want it to take up space on the .map line!`
+    ));
+
+    // good
+    [1, 2, 3].map((number) => (
+    `A long string with the ${number}. It’s so long that we don’t want it to take up space on the .map line!`
+    ));
+
+    // bad
+    [1, 2, 3].map(x => {
+    const y = x + 1;
+    return x * y;
+    });
+
+    // good
+    [1, 2, 3].map((x) => {
+    const y = x + 1;
+    return x * y;
+    });
+
+* Avoid confusing arrow function syntax (=>) with comparison operators (<=, >=)
+    // bad
+    const itemHeight = (item) => item.height <= 256 ? item.largeSize : item.smallSize;
+
+    // bad
+    const itemHeight = (item) => item.height >= 256 ? item.largeSize : item.smallSize;
+
+    // good
+    const itemHeight = (item) => (item.height <= 256 ? item.largeSize : item.smallSize);
+
+    // good
+    const itemHeight = (item) => {
+    const { height, largeSize, smallSize } = item;
+    return height <= 256 ? largeSize : smallSize;
+    };
+
+* Enforce the location of arrow function bodies with implicit returns
+    // bad
+    (foo) =>
+    bar;
+
+    (foo) =>
+    (bar);
+
+    // good
+    (foo) => bar;
+    (foo) => (bar);
+    (foo) => (
+    bar
+    )
+
+## `Classes & Constructors`
+
