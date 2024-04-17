@@ -790,4 +790,736 @@ Why? It shows clearly where the function starts and ends.
     )
 
 ## `Classes & Constructors`
+* Always use class. Avoid manipulating prototype directly.
+    Why? class syntax is more concise and easier to reason about.
+    // bad
+    function Queue(contents = []) {
+    this.queue = [...contents];
+    }
+    Queue.prototype.pop = function () {
+    const value = this.queue[0];
+    this.queue.splice(0, 1);
+    return value;
+    };
 
+    // good
+    class Queue {
+    constructor(contents = []) {
+        this.queue = [...contents];
+    }
+    pop() {
+        const value = this.queue[0];
+        this.queue.splice(0, 1);
+        return value;
+    }
+    }
+
+* Use extends for inheritance.
+    Why? It is a built-in way to inherit prototype functionality without breaking instanceof
+    // bad
+    const inherits = require('inherits');
+    function PeekableQueue(contents) {
+    Queue.apply(this, contents);
+    }
+    inherits(PeekableQueue, Queue);
+    PeekableQueue.prototype.peek = function () {
+    return this.queue[0];
+    };
+
+    // good
+    class PeekableQueue extends Queue {
+    peek() {
+        return this.queue[0];
+    }
+    }
+
+* Methods can return this to help with method chaining.
+    // bad
+    Jedi.prototype.jump = function () {
+    this.jumping = true;
+    return true;
+    };
+
+    Jedi.prototype.setHeight = function (height) {
+    this.height = height;
+    };
+
+    const luke = new Jedi();
+    luke.jump(); // => true
+    luke.setHeight(20); // => undefined
+
+    // good
+    class Jedi {
+    jump() {
+        this.jumping = true;
+        return this;
+    }
+
+    setHeight(height) {
+        this.height = height;
+        return this;
+    }
+    }
+
+    const luke = new Jedi();
+
+    luke.jump()
+    .setHeight(20);
+
+* It’s okay to write a custom toString() method, just make sure it works successfully and causes no side effects.
+    class Jedi {
+    constructor(options = {}) {
+        this.name = options.name || 'no name';
+    }
+
+    getName() {
+        return this.name;
+    }
+
+    toString() {
+        return `Jedi - ${this.getName()}`;
+    }
+    }
+
+* Classes have a default constructor if one is not specified. An empty constructor function or one that just delegates to a parent class is unnecessary.
+    // bad
+    class Jedi {
+    constructor() {}
+
+    getName() {
+        return this.name;
+    }
+    }
+
+    // bad
+    class Rey extends Jedi {
+    constructor(...args) {
+        super(...args);
+    }
+    }
+
+    // good
+    class Rey extends Jedi {
+    constructor(...args) {
+        super(...args);
+        this.name = 'Rey';
+    }
+    }
+
+* Avoid duplicate class members.
+    Why? Duplicate class member declarations will silently prefer the last one - having duplicates is almost certainly a bug.
+    // bad
+    class Foo {
+    bar() { return 1; }
+    bar() { return 2; }
+    }
+
+    // good
+    class Foo {
+    bar() { return 1; }
+    }
+
+    // good
+    class Foo {
+    bar() { return 2; }
+    }
+
+* Class methods should use this or be made into a static method unless an external library or framework requires using specific non-static methods. Being an instance method should indicate that it behaves differently based on properties of the receiver
+    // bad
+    class Foo {
+    bar() {
+        console.log('bar');
+    }
+    }
+
+    // good - this is used
+    class Foo {
+    bar() {
+        console.log(this.bar);
+    }
+    }
+
+    // good - constructor is exempt
+    class Foo {
+    constructor() {
+        // ...
+    }
+    }
+
+    // good - static methods aren't expected to use this
+    class Foo {
+    static bar() {
+        console.log('bar');
+    }
+    }
+
+## `Modules`
+* Always use modules (import/export) over a non-standard module system. You can always transpile to your preferred module system.
+    Why? Modules are the future, let’s start using the future now.
+    // bad
+    const AirbnbStyleGuide = require('./AirbnbStyleGuide');
+    module.exports = AirbnbStyleGuide.es6;
+
+    // ok
+    import AirbnbStyleGuide from './AirbnbStyleGuide';
+    export default AirbnbStyleGuide.es6;
+
+    // best
+    import { es6 } from './AirbnbStyleGuide';
+    export default es6;
+
+* Do not use wildcard imports.
+    Why? This makes sure you have a single default export.
+    // bad
+    import * as AirbnbStyleGuide from './AirbnbStyleGuide';
+
+    // good
+    import AirbnbStyleGuide from './AirbnbStyleGuide';
+
+* And do not export directly from an import.
+
+    Why? Although the one-liner is concise, having one clear way to import and one clear way to export makes things consistent.
+    // bad
+    // filename es6.js
+    export { es6 as default } from './AirbnbStyleGuide';
+
+    // good
+    // filename es6.js
+    import { es6 } from './AirbnbStyleGuide';
+    export default es6;
+
+* Only import from a path in one place.
+    Why? Having multiple lines that import from the same path can make code harder to maintain.
+    // bad
+    import foo from 'foo';
+    // … some other imports … //
+    import { named1, named2 } from 'foo';
+
+    // good
+    import foo, { named1, named2 } from 'foo';
+
+    // good
+    import foo, {
+    named1,
+    named2,
+    } from 'foo';
+
+* Do not export mutable bindings. 
+    Why? Mutation should be avoided in general, but in particular when exporting mutable bindings. While this technique may be needed for some special cases, in general, only constant references should be exported.
+        // bad
+    let foo = 3;
+    export { foo };
+
+    // good
+    const foo = 3;
+    export { foo };
+
+* In modules with a single export, prefer default export over named export.
+    Why? To encourage more files that only ever export one thing, which is better for readability and maintainability.
+    // bad
+    export function foo() {}
+
+    // good
+    export default function foo() {}
+
+* Put all imports above non-import statements.
+    Why? Since imports are hoisted, keeping them all at the top prevents surprising behavior.
+    // bad
+    import foo from 'foo';
+    foo.init();
+
+    import bar from 'bar';
+
+    // good
+    import foo from 'foo';
+    import bar from 'bar';
+
+    foo.init();
+
+* Multiline imports should be indented just like multiline array and object literals.
+    Why? The curly braces follow the same indentation rules as every other curly brace block in the style guide, as do the trailing commas.
+    // bad
+    import {longNameA, longNameB, longNameC, longNameD, longNameE} from 'path';
+
+    // good
+    import {
+    longNameA,
+    longNameB,
+    longNameC,
+    longNameD,
+    longNameE,
+    } from 'path';
+
+* Disallow Webpack loader syntax in module import statements.
+    Why? Since using Webpack syntax in the imports couples the code to a module bundler. Prefer using the loader syntax in webpack.config.js.
+    // bad
+    import fooSass from 'css!sass!foo.scss';
+    import barCss from 'style!css!bar.css';
+
+    // good
+    import fooSass from 'foo.scss';
+    import barCss from 'bar.css';
+
+* Do not include JavaScript filename extensions
+    Why? Including extensions inhibits refactoring, and inappropriately hardcodes implementation details of the module you're importing in every consumer.
+    // bad
+    import foo from './foo.js';
+    import bar from './bar.jsx';
+    import baz from './baz/index.jsx';
+
+    // good
+    import foo from './foo';
+    import bar from './bar';
+    import baz from './baz';
+
+## `Iterators and Generators`
+* Don’t use iterators. Prefer JavaScript’s higher-order functions instead of loops like for-in or for-of
+    Why? This enforces our immutable rule. Dealing with pure functions that return values is easier to reason about than side effects.
+
+    Use map() / every() / filter() / find() / findIndex() / reduce() / some() / ... to iterate over arrays, and Object.keys() / Object.values() / Object.entries() to produce arrays so you can iterate over objects.
+    const numbers = [1, 2, 3, 4, 5];
+
+    // bad
+    let sum = 0;
+    for (let num of numbers) {
+    sum += num;
+    }
+    sum === 15;
+
+    // good
+    let sum = 0;
+    numbers.forEach((num) => {
+    sum += num;
+    });
+    sum === 15;
+
+    // best (use the functional force)
+    const sum = numbers.reduce((total, num) => total + num, 0);
+    sum === 15;
+
+    // bad
+    const increasedByOne = [];
+    for (let i = 0; i < numbers.length; i++) {
+    increasedByOne.push(numbers[i] + 1);
+    }
+
+    // good
+    const increasedByOne = [];
+    numbers.forEach((num) => {
+    increasedByOne.push(num + 1);
+    });
+
+    // best (keeping it functional)
+    const increasedByOne = numbers.map((num) => num + 1);
+
+* Don’t use generators for now.
+
+    Why? They don’t transpile well to ES5.
+
+* If you must use generators, or if you disregard our advice, make sure their function signature is spaced properly.
+    Why? function and * are part of the same conceptual keyword - * is not a modifier for function, function* is a unique construct, different from function.
+
+    // bad
+    function * foo() {
+    // ...
+    }
+
+    // bad
+    const bar = function * () {
+    // ...
+    };
+
+    // bad
+    const baz = function *() {
+    // ...
+    };
+
+    // bad
+    const quux = function*() {
+    // ...
+    };
+
+    // bad
+    function*foo() {
+    // ...
+    }
+
+    // bad
+    function *foo() {
+    // ...
+    }
+
+    // very bad
+    function
+    *
+    foo() {
+    // ...
+    }
+
+    // very bad
+    const wat = function
+    *
+    () {
+    // ...
+    };
+
+    // good
+    function* foo() {
+    // ...
+    }
+
+    // good
+    const foo = function* () {
+    // ...
+    };
+
+## `Properties`
+* Use dot notation when accessing properties.
+    const luke = {
+    jedi: true,
+    age: 28,
+    };
+
+    // bad
+    const isJedi = luke['jedi'];
+
+    // good
+    const isJedi = luke.jedi;
+
+* Use bracket notation [] when accessing properties with a variable.
+    const luke = {
+    jedi: true,
+    age: 28,
+    };
+
+    function getProp(prop) {
+    return luke[prop];
+    }
+
+    const isJedi = getProp('jedi');
+
+* Use exponentiation operator ** when calculating exponentiations.
+    // bad
+    const binary = Math.pow(2, 10);
+
+    // good
+    const binary = 2 ** 10;
+
+## `Variables`
+* Always use const or let to declare variables. Not doing so will result in global variables. We want to avoid polluting the global namespace.
+    // bad
+    superPower = new SuperPower();
+
+    // good
+    const superPower = new SuperPower();
+
+* Use one const or let declaration per variable or assignment.
+    Why? It’s easier to add new variable declarations this way, and you never have to worry about swapping out a ; for a , or introducing punctuation-only diffs. You can also step through each declaration with the debugger, instead of jumping through all of them at once.
+
+    // bad
+    const items = getItems(),
+        goSportsTeam = true,
+        dragonball = 'z';
+
+    // bad
+    // (compare to above, and try to spot the mistake)
+    const items = getItems(),
+        goSportsTeam = true;
+        dragonball = 'z';
+
+    // good
+    const items = getItems();
+    const goSportsTeam = true;
+    const dragonball = 'z';
+
+* Group all your consts and then group all your lets.
+    Why? This is helpful when later on you might need to assign a variable depending on one of the previously assigned variables.
+    // bad
+    let i, len, dragonball,
+        items = getItems(),
+        goSportsTeam = true;
+
+    // bad
+    let i;
+    const items = getItems();
+    let dragonball;
+    const goSportsTeam = true;
+    let len;
+
+    // good
+    const goSportsTeam = true;
+    const items = getItems();
+    let dragonball;
+    let i;
+    let length;
+
+* Assign variables where you need them, but place them in a reasonable place.
+    Why? let and const are block scoped and not function scoped.
+    // bad - unnecessary function call
+    function checkName(hasName) {
+    const name = getName();
+
+    if (hasName === 'test') {
+        return false;
+    }
+
+    if (name === 'test') {
+        this.setName('');
+        return false;
+    }
+
+    return name;
+    }
+
+    // good
+    function checkName(hasName) {
+    if (hasName === 'test') {
+        return false;
+    }
+
+    const name = getName();
+
+    if (name === 'test') {
+        this.setName('');
+        return false;
+    }
+
+    return name;
+    }
+
+* Don’t chain variable assignments. 
+    Why? Chaining variable assignments creates implicit global variables.
+    // bad
+    (function example() {
+    // JavaScript interprets this as
+    // let a = ( b = ( c = 1 ) );
+    // The let keyword only applies to variable a; variables b and c become
+    // global variables.
+    let a = b = c = 1;
+    }());
+
+    console.log(a); // throws ReferenceError
+    console.log(b); // 1
+    console.log(c); // 1
+
+    // good
+    (function example() {
+    let a = 1;
+    let b = a;
+    let c = a;
+    }());
+
+    console.log(a); // throws ReferenceError
+    console.log(b); // throws ReferenceError
+    console.log(c); // throws ReferenceError
+
+    // the same applies for `const`
+
+* Avoid using unary increments and decrements (++, --)
+    Why? Per the eslint documentation, unary increment and decrement statements are subject to automatic semicolon insertion and can cause silent errors with incrementing or decrementing values within an application. It is also more expressive to mutate your values with statements like num += 1 instead of num++ or num ++. Disallowing unary increment and decrement statements also prevents you from pre-incrementing/pre-decrementing values unintentionally which can also cause unexpected behavior in your programs
+
+    // bad
+
+    const array = [1, 2, 3];
+    let num = 1;
+    num++;
+    --num;
+
+    let sum = 0;
+    let truthyCount = 0;
+    for (let i = 0; i < array.length; i++) {
+    let value = array[i];
+    sum += value;
+    if (value) {
+        truthyCount++;
+    }
+    }
+
+    // good
+
+    const array = [1, 2, 3];
+    let num = 1;
+    num += 1;
+    num -= 1;
+
+    const sum = array.reduce((a, b) => a + b, 0);
+    const truthyCount = array.filter(Boolean).length;
+
+* Avoid linebreaks before or after = in an assignment. If your assignment violates max-len, surround the value in parens
+    Why? Linebreaks surrounding = can obfuscate the value of an assignment.
+
+    // bad
+    const foo =
+    superLongLongLongLongLongLongLongLongFunctionName();
+
+    // bad
+    const foo
+    = 'superLongLongLongLongLongLongLongLongString';
+
+    // good
+    const foo = (
+    superLongLongLongLongLongLongLongLongFunctionName()
+    );
+
+    // good
+    const foo = 'superLongLongLongLongLongLongLongLongString';
+
+*  Disallow unused variables.
+    Why? Variables that are declared and not used anywhere in the code are most likely an error due to incomplete refactoring. Such variables take up space in the code and can lead to confusion by readers.
+    // bad
+
+    const some_unused_var = 42;
+
+    // Write-only variables are not considered as used.
+    let y = 10;
+    y = 5;
+
+    // A read for a modification of itself is not considered as used.
+    let z = 0;
+    z = z + 1;
+
+    // Unused function arguments.
+    function getX(x, y) {
+        return x;
+    }
+
+    // good
+
+    function getXPlusY(x, y) {
+    return x + y;
+    }
+
+    const x = 1;
+    const y = a + 2;
+
+    alert(getXPlusY(x, y));
+
+    // 'type' is ignored even if unused because it has a rest property sibling.
+    // This is a form of extracting an object that omits the specified keys.
+    const { type, ...coords } = data;
+    // 'coords' is now the 'data' object without its 'type' property.
+
+## `Hoisting`
+* var declarations get hoisted to the top of their closest enclosing function scope, their assignment does not. const and let declarations are blessed with a new concept called Temporal Dead Zones (TDZ): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let#temporal_dead_zone_tdz. It’s important to know why typeof is no longer safe.:https://web.archive.org/web/20200121061528/http://es-discourse.com/t/why-typeof-is-no-longer-safe/15
+    // we know this wouldn’t work (assuming there
+    // is no notDefined global variable)
+    function example() {
+    console.log(notDefined); // => throws a ReferenceError
+    }
+
+    // creating a variable declaration after you
+    // reference the variable will work due to
+    // variable hoisting. Note: the assignment
+    // value of `true` is not hoisted.
+    function example() {
+    console.log(declaredButNotAssigned); // => undefined
+    var declaredButNotAssigned = true;
+    }
+
+    // the interpreter is hoisting the variable
+    // declaration to the top of the scope,
+    // which means our example could be rewritten as:
+    function example() {
+    let declaredButNotAssigned;
+    console.log(declaredButNotAssigned); // => undefined
+    declaredButNotAssigned = true;
+    }
+
+    // using const and let
+    function example() {
+    console.log(declaredButNotAssigned); // => throws a ReferenceError
+    console.log(typeof declaredButNotAssigned); // => throws a ReferenceError
+    const declaredButNotAssigned = true;
+    }
+
+* Anonymous function expressions hoist their variable name, but not the function assignment.
+    function example() {
+    console.log(anonymous); // => undefined
+
+    anonymous(); // => TypeError anonymous is not a function
+
+    var anonymous = function () {
+        console.log('anonymous function expression');
+    };
+    }
+
+* Named function expressions hoist the variable name, not the function name or the function body.
+    function example() {
+    console.log(named); // => undefined
+
+    named(); // => TypeError named is not a function
+
+    superPower(); // => ReferenceError superPower is not defined
+
+    var named = function superPower() {
+        console.log('Flying');
+    };
+    }
+
+    // the same is true when the function name
+    // is the same as the variable name.
+    function example() {
+    console.log(named); // => undefined
+
+    named(); // => TypeError named is not a function
+
+    var named = function named() {
+        console.log('named');
+    };
+    }
+
+* Function declarations hoist their name and the function body.
+    function example() {
+    superPower(); // => Flying
+
+    function superPower() {
+        console.log('Flying');
+    }
+    }
+
+* Variables, classes, and functions should be defined before they can be used.
+    Why? When variables, classes, or functions are declared after being used, it can harm readability since a reader won't know what a thing that's referenced is. It's much clearer for a reader to first encounter the source of a thing (whether imported from another module, or defined in the file) before encountering a use of the thing.
+    // bad
+
+    // Variable a is being used before it is being defined.
+    console.log(a); // this will be undefined, since while the declaration is hoisted, the initialization is not
+    var a = 10;
+
+    // Function fun is being called before being defined.
+    fun();
+    function fun() {}
+
+    // Class A is being used before being defined.
+    new A(); // ReferenceError: Cannot access 'A' before initialization
+    class A {
+    }
+
+    // `let` and `const` are hoisted, but they don't have a default initialization.
+    // The variables 'a' and 'b' are in a Temporal Dead Zone where JavaScript
+    // knows they exist (declaration is hoisted) but they are not accessible
+    // (as they are not yet initialized).
+
+    console.log(a); // ReferenceError: Cannot access 'a' before initialization
+    console.log(b); // ReferenceError: Cannot access 'b' before initialization
+    let a = 10;
+    const b = 5;
+
+
+    // good
+
+    var a = 10;
+    console.log(a); // 10
+
+    function fun() {}
+    fun();
+
+    class A {
+    }
+    new A();
+
+    let a = 10;
+    const b = 5;
+    console.log(a); // 10
+    console.log(b); // 5
+
+## `Comparison Operators & Equality`
