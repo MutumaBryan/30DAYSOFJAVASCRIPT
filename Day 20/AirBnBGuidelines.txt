@@ -1523,3 +1523,1158 @@ Why? It shows clearly where the function starts and ends.
     console.log(b); // 5
 
 ## `Comparison Operators & Equality`
+* Use === and !== over == and !=
+* Conditional statements such as the if statement evaluate their expression using coercion with the ToBoolean abstract method and always follow these simple rules:
+
+    Objects evaluate to true
+    Undefined evaluates to false
+    Null evaluates to false
+    Booleans evaluate to the value of the boolean
+    Numbers evaluate to false if +0, -0, or NaN, otherwise true
+    Strings evaluate to false if an empty string '', otherwise true
+    
+    if ([0] && []) {
+    // true
+    // an array (even an empty one) is an object, objects will evaluate to true
+    }
+
+* Use shortcuts for booleans, but explicit comparisons for strings and numbers.
+    // bad
+    if (isValid === true) {
+    // ...
+    }
+
+    // good
+    if (isValid) {
+    // ...
+    }
+
+    // bad
+    if (name) {
+    // ...
+    }
+
+    // good
+    if (name !== '') {
+    // ...
+    }
+
+    // bad
+    if (collection.length) {
+    // ...
+    }
+
+    // good
+    if (collection.length > 0) {
+    // ...
+    }
+
+* For more information see Truth, Equality, and JavaScript: https://javascriptweblog.wordpress.com/2011/02/07/truth-equality-and-javascript/#more-2108 by Angus Croll.
+
+* Use braces to create blocks in case and default clauses that contain lexical declarations (e.g. let, const, function, and class)
+    Why? Lexical declarations are visible in the entire switch block but only get initialized when assigned, which only happens when its case is reached. This causes problems when multiple case clauses attempt to define the same thing.
+    // bad
+    switch (foo) {
+    case 1:
+        let x = 1;
+        break;
+    case 2:
+        const y = 2;
+        break;
+    case 3:
+        function f() {
+        // ...
+        }
+        break;
+    default:
+        class C {}
+    }
+
+    // good
+    switch (foo) {
+    case 1: {
+        let x = 1;
+        break;
+    }
+    case 2: {
+        const y = 2;
+        break;
+    }
+    case 3: {
+        function f() {
+        // ...
+        }
+        break;
+    }
+    case 4:
+        bar();
+        break;
+    default: {
+        class C {}
+    }
+    }
+
+* Ternaries should not be nested and generally be single line expressions. 
+    // bad
+    const foo = maybe1 > maybe2
+    ? "bar"
+    : value1 > value2 ? "baz" : null;
+
+    // split into 2 separated ternary expressions
+    const maybeNull = value1 > value2 ? 'baz' : null;
+
+    // better
+    const foo = maybe1 > maybe2
+    ? 'bar'
+    : maybeNull;
+
+    // best
+    const foo = maybe1 > maybe2 ? 'bar' : maybeNull;
+
+* Avoid unneeded ternary statements.
+    // bad
+    const foo = a ? a : b;
+    const bar = c ? true : false;
+    const baz = c ? false : true;
+    const quux = a != null ? a : b;
+
+    // good
+    const foo = a || b;
+    const bar = !!c;
+    const baz = !c;
+    const quux = a ?? b;
+
+* When mixing operators, enclose them in parentheses. The only exception is the standard arithmetic operators: +, -, and ** since their precedence is broadly understood. Enclosing / and * in parentheses is also recommended because their precedence can be ambiguous when they are mixed.
+    Why? This improves readability and clarifies the developer’s intention.
+    // bad
+    const foo = a && b < 0 || c > 0 || d + 1 === 0;
+
+    // bad
+    const bar = a ** b - 5 % d;
+
+    // bad
+    // one may be confused into thinking (a || b) && c
+    if (a || b && c) {
+    return d;
+    }
+
+    // bad
+    const bar = a + b / c * d;
+
+    // good
+    const foo = (a && b < 0) || c > 0 || (d + 1 === 0);
+
+    // good
+    const bar = a ** b - (5 % d);
+
+    // good
+    if (a || (b && c)) {
+    return d;
+    }
+
+    // good
+    const bar = a + (b / c) * d;
+
+* The nullish coalescing operator (??) is a logical operator that returns its right-hand side operand when its left-hand side operand is null or undefined. Otherwise, it returns the left-hand side operand.
+    Why? It provides precision by distinguishing null/undefined from other falsy values, enhancing code clarity and predictability.
+    // bad
+    const value = 0 ?? 'default';
+    // returns 0, not 'default'
+
+    // bad
+    const value = '' ?? 'default';
+    // returns '', not 'default'
+
+    // good
+    const value = null ?? 'default';
+    // returns 'default'
+
+    // good
+    const user = {
+    name: 'John',
+    age: null
+    };
+    const age = user.age ?? 18;
+    // returns 18
+
+## `Blocks`
+* Use braces with all multiline blocks.
+    // bad
+    if (test)
+    return false;
+
+    // good
+    if (test) return false;
+
+    // good
+    if (test) {
+    return false;
+    }
+
+    // bad
+    function foo() { return false; }
+
+    // good
+    function bar() {
+    return false;
+    }
+
+* If you’re using multiline blocks with if and else, put else on the same line as your if block’s closing brace.
+    // bad
+    if (test) {
+    thing1();
+    thing2();
+    }
+    else {
+    thing3();
+    }
+
+    // good
+    if (test) {
+    thing1();
+    thing2();
+    } else {
+    thing3();
+    }
+
+* If an if block always executes a return statement, the subsequent else block is unnecessary. A return in an else if block following an if block that contains a return can be separated into multiple if blocks.
+    // bad
+    function foo() {
+    if (x) {
+        return x;
+    } else {
+        return y;
+    }
+    }
+
+    // bad
+    function cats() {
+    if (x) {
+        return x;
+    } else if (y) {
+        return y;
+    }
+    }
+
+    // bad
+    function dogs() {
+    if (x) {
+        return x;
+    } else {
+        if (y) {
+        return y;
+        }
+    }
+    }
+
+    // good
+    function foo() {
+    if (x) {
+        return x;
+    }
+
+    return y;
+    }
+
+    // good
+    function cats() {
+    if (x) {
+        return x;
+    }
+
+    if (y) {
+        return y;
+    }
+    }
+
+    // good
+    function dogs(x) {
+    if (x) {
+        if (z) {
+        return y;
+        }
+    } else {
+        return z;
+    }
+    }
+
+## `Control Statements`
+* In case your control statement (if, while etc.) gets too long or exceeds the maximum line length, each (grouped) condition could be put into a new line. The logical operator should begin the line.
+    Why? Requiring operators at the beginning of the line keeps the operators aligned and follows a pattern similar to method chaining. This also improves readability by making it easier to visually follow complex logic.
+
+    // bad
+    if ((foo === 123 || bar === 'abc') && doesItLookGoodWhenItBecomesThatLong() && isThisReallyHappening()) {
+    thing1();
+    }
+
+    // bad
+    if (foo === 123 &&
+    bar === 'abc') {
+    thing1();
+    }
+
+    // bad
+    if (foo === 123
+    && bar === 'abc') {
+    thing1();
+    }
+
+    // bad
+    if (
+    foo === 123 &&
+    bar === 'abc'
+    ) {
+    thing1();
+    }
+
+    // good
+    if (
+    foo === 123
+    && bar === 'abc'
+    ) {
+    thing1();
+    }
+
+    // good
+    if (
+    (foo === 123 || bar === 'abc')
+    && doesItLookGoodWhenItBecomesThatLong()
+    && isThisReallyHappening()
+    ) {
+    thing1();
+    }
+
+    // good
+    if (foo === 123 && bar === 'abc') {
+    thing1();
+    }
+
+* Don't use selection operators in place of control statements.
+    // bad
+    !isRunning && startRunning();
+
+    // good
+    if (!isRunning) {
+    startRunning();
+    }
+
+## `Comments`
+* Use /** ... */ for multiline comments.
+    // bad
+    // make() returns a new element
+    // based on the passed in tag name
+    //
+    // @param {String} tag
+    // @return {Element} element
+    function make(tag) {
+
+    // ...
+
+    return element;
+    }
+
+    // good
+    /**
+    * make() returns a new element
+    * based on the passed-in tag name
+    */
+    function make(tag) {
+
+    // ...
+
+    return element;
+    } 
+
+* Use // for single line comments. Place single line comments on a newline above the subject of the comment. 
+* Put an empty line before the comment unless it’s on the first line of a block.
+    // bad
+    const active = true;  // is current tab
+
+    // good
+    // is current tab
+    const active = true;
+
+    // bad
+    function getType() {
+    console.log('fetching type...');
+    // set the default type to 'no type'
+    const type = this.type || 'no type';
+
+    return type;
+    }
+
+    // good
+    function getType() {
+    console.log('fetching type...');
+
+    // set the default type to 'no type'
+    const type = this.type || 'no type';
+
+    return type;
+    }
+
+    // also good
+    function getType() {
+    // set the default type to 'no type'
+    const type = this.type || 'no type';
+
+    return type;
+    }
+
+* Start all comments with a space to make it easier to read.
+* Prefixing your comments with FIXME or TODO helps other developers quickly understand if you’re pointing out a problem that needs to be revisited, or if you’re suggesting a solution to the problem that needs to be implemented. 
+    These are different than regular comments because they are actionable. 
+    The actions are FIXME: -- need to figure this out or TODO: -- need to implement.
+    Use FIXME to annotate problems
+    class Calculator extends Abacus {
+    constructor() {
+        super();
+
+        // FIXME: shouldn’t use a global here
+        total = 0;
+    }
+    }
+    Use // TODO: to annotate solutions to problems.
+    class Calculator extends Abacus {
+    constructor() {
+        super();
+
+        // TODO: total should be configurable by an options param
+        this.total = 0;
+    }
+    }
+
+##  `Whitespace`
+* Use soft tabs (space character) set to 2 spaces.
+    // bad
+    function foo() {
+    ∙∙∙∙let name;
+    }
+
+    // bad
+    function bar() {
+    ∙let name;
+    }
+
+    // good
+    function baz() {
+    ∙∙let name;
+    }
+
+* Place 1 space before the leading brace.
+// bad
+function test(){
+  console.log('test');
+}
+
+// good
+function test() {
+  console.log('test');
+}
+
+// bad
+dog.set('attr',{
+  age: '1 year',
+  breed: 'Bernese Mountain Dog',
+});
+
+// good
+dog.set('attr', {
+  age: '1 year',
+  breed: 'Bernese Mountain Dog',
+});
+
+* Place 1 space before the opening parenthesis in control statements (if, while etc.). 
+    Place no space between the argument list and the function name in function calls and declarations.
+        // bad
+    if(isJedi) {
+      fight ();
+    }
+
+    // good
+    if (isJedi) {
+      fight();
+    }
+
+    // bad
+    function fight () {
+      console.log ('Swooosh!');
+    }
+
+    // good
+    function fight() {
+      console.log('Swooosh!');
+    }
+
+* Set off operators with spaces.
+    // bad
+    const x=y+5;
+
+    // good
+    const x = y + 5;
+
+* End files with a single newline character.
+// good
+import { es6 } from './AirbnbStyleGuide';
+  // ...
+export default es6;↵
+
+// bad
+import { es6 } from './AirbnbStyleGuide';
+  // ...
+export default es6;↵
+↵
+
+* Use indentation when making long method chains (more than 2 method chains). Use a leading dot, which emphasizes that the line is a method call, not a new statement. 
+// bad
+$('#items').find('.selected').highlight().end().find('.open').updateCount();
+
+// bad
+$('#items').
+  find('.selected').
+    highlight().
+    end().
+  find('.open').
+    updateCount();
+
+// good
+$('#items')
+  .find('.selected')
+    .highlight()
+    .end()
+  .find('.open')
+    .updateCount();
+
+// bad
+const leds = stage.selectAll('.led').data(data).enter().append('svg:svg').classed('led', true)
+    .attr('width', (radius + margin) * 2).append('svg:g')
+    .attr('transform', `translate(${radius + margin}, ${radius + margin})`)
+    .call(tron.led);
+
+// good
+const leds = stage.selectAll('.led')
+    .data(data)
+  .enter().append('svg:svg')
+    .classed('led', true)
+    .attr('width', (radius + margin) * 2)
+  .append('svg:g')
+    .attr('transform', `translate(${radius + margin}, ${radius + margin})`)
+    .call(tron.led);
+
+// good
+const leds = stage.selectAll('.led').data(data);
+const svg = leds.enter().append('svg:svg');
+svg.classed('led', true).attr('width', (radius + margin) * 2);
+const g = svg.append('svg:g');
+g.attr('transform', `translate(${radius + margin}, ${radius + margin})`).call(tron.led);
+
+* Leave a blank line after blocks and before the next statement.
+// bad
+if (foo) {
+  return bar;
+}
+return baz;
+
+// good
+if (foo) {
+  return bar;
+}
+
+return baz;
+
+// bad
+const obj = {
+  foo() {
+  },
+  bar() {
+  },
+};
+return obj;
+
+// good
+const obj = {
+  foo() {
+  },
+
+  bar() {
+  },
+};
+
+return obj;
+
+// bad
+const arr = [
+  function foo() {
+  },
+  function bar() {
+  },
+];
+return arr;
+
+// good
+const arr = [
+  function foo() {
+  },
+
+  function bar() {
+  },
+];
+
+return arr;
+
+* Do not pad your blocks with blank lines. 
+// bad
+function bar() {
+
+  console.log(foo);
+
+}
+
+// bad
+if (baz) {
+
+  console.log(quux);
+} else {
+  console.log(foo);
+
+}
+
+// bad
+class Foo {
+
+  constructor(bar) {
+    this.bar = bar;
+  }
+}
+
+// good
+function bar() {
+  console.log(foo);
+}
+
+// good
+if (baz) {
+  console.log(quux);
+} else {
+  console.log(foo);
+}
+
+* Do not use multiple blank lines to pad your code.
+// bad
+class Person {
+  constructor(fullName, email, birthday) {
+    this.fullName = fullName;
+
+
+    this.email = email;
+
+
+    this.setAge(birthday);
+  }
+
+
+  setAge(birthday) {
+    const today = new Date();
+
+
+    const age = this.getAge(today, birthday);
+
+
+    this.age = age;
+  }
+
+
+  getAge(today, birthday) {
+    // ..
+  }
+}
+
+// good
+class Person {
+  constructor(fullName, email, birthday) {
+    this.fullName = fullName;
+    this.email = email;
+    this.setAge(birthday);
+  }
+
+  setAge(birthday) {
+    const today = new Date();
+    const age = getAge(today, birthday);
+    this.age = age;
+  }
+
+  getAge(today, birthday) {
+    // ..
+  }
+}
+
+* Do not add spaces inside parentheses. 
+* Do not add spaces inside brackets.
+// bad
+const foo = [ 1, 2, 3 ];
+console.log(foo[ 0 ]);
+
+// good
+const foo = [1, 2, 3];
+console.log(foo[0]);
+
+* Add spaces inside curly braces. 
+// bad
+const foo = {clark: 'kent'};
+
+// good
+const foo = { clark: 'kent' };
+
+* Avoid having lines of code that are longer than 100 characters (including whitespace). Note: per above, long strings are exempt from this rule, and should not be broken up.
+    Why? This ensures readability and maintainability.
+
+    // bad
+const foo = jsonData && jsonData.foo && jsonData.foo.bar && jsonData.foo.bar.baz && jsonData.foo.bar.baz.quux && jsonData.foo.bar.baz.quux.xyzzy;
+
+// bad
+$.ajax({ method: 'POST', url: 'https://airbnb.com/', data: { name: 'John' } }).done(() => console.log('Congratulations!')).fail(() => console.log('You have failed this city.'));
+
+// good
+const foo = jsonData
+  && jsonData.foo
+  && jsonData.foo.bar
+  && jsonData.foo.bar.baz
+  && jsonData.foo.bar.baz.quux
+  && jsonData.foo.bar.baz.quux.xyzzy;
+
+// better
+const foo = jsonData
+  ?.foo
+  ?.bar
+  ?.baz
+  ?.quux
+  ?.xyzzy;
+
+// good
+$.ajax({
+  method: 'POST',
+  url: 'https://airbnb.com/',
+  data: { name: 'John' },
+})
+  .done(() => console.log('Congratulations!'))
+  .fail(() => console.log('You have failed this city.'));
+
+* Require consistent spacing inside an open block token and the next token on the same line. 
+    This rule also enforces consistent spacing inside a close block token and previous token on the same line.
+    // bad
+function foo() {return true;}
+if (foo) { bar = 0;}
+
+// good
+function foo() { return true; }
+if (foo) { bar = 0; }
+
+* Avoid spaces before commas and require a space after commas.
+* Avoid spaces between functions and their invocations.
+// bad
+func ();
+
+func
+();
+
+// good
+func();
+
+* Avoid trailing spaces at the end of lines. 
+* Avoid multiple empty lines, only allow one newline at the end of files, and avoid a newline at the beginning of files.
+
+## `Commas`
+* No Leading commas.
+* Additional trailing comma: Yup
+    Why? This leads to cleaner git diffs. Also, transpilers like Babel will remove the additional trailing comma in the transpiled code which means you don’t have to worry about the trailing comma problem: https://github.com/airbnb/javascript/blob/es5-deprecated/es5/README.md#commas in legacy browsers.
+
+## `Semi Colon`
+* Always    
+    When JavaScript encounters a line break without a semicolon, it uses a set of rules called Automatic Semicolon Insertion to determine whether it should regard that line break as the end of a statement, and (as the name implies) place a semicolon into your code before the line break if it thinks so. 
+    ASI contains a few eccentric behaviors, though, and your code will break if JavaScript misinterprets your line break. 
+    These rules will become more complicated as new features become a part of JavaScript. 
+    Explicitly terminating your statements and configuring your linter to catch missing semicolons will help prevent you from encountering issues.
+
+    // bad - raises exception
+const luke = {}
+const leia = {}
+[luke, leia].forEach((jedi) => jedi.father = 'vader')
+
+// bad - raises exception
+const reaction = "No! That’s impossible!"
+(async function meanwhileOnTheFalcon() {
+  // handle `leia`, `lando`, `chewie`, `r2`, `c3p0`
+  // ...
+}())
+
+// bad - returns `undefined` instead of the value on the next line - always happens when `return` is on a line by itself because of ASI!
+function foo() {
+  return
+    'search your feelings, you know it to be foo'
+}
+
+// good
+const luke = {};
+const leia = {};
+[luke, leia].forEach((jedi) => {
+  jedi.father = 'vader';
+});
+
+// good
+const reaction = 'No! That’s impossible!';
+(async function meanwhileOnTheFalcon() {
+  // handle `leia`, `lando`, `chewie`, `r2`, `c3p0`
+  // ...
+}());
+
+// good
+function foo() {
+  return 'search your feelings, you know it to be foo';
+}
+
+## `Type Casting & Coercion`
+* Perform type coercion at the beginning of the statement
+* String: 
+// => this.reviewScore = 9;
+
+// bad
+const totalScore = new String(this.reviewScore); // typeof totalScore is "object" not "string"
+
+// bad
+const totalScore = this.reviewScore + ''; // invokes this.reviewScore.valueOf()
+
+// bad
+const totalScore = this.reviewScore.toString(); // isn’t guaranteed to return a string
+
+// good
+const totalScore = String(this.reviewScore);
+
+* Numbers: Use Number for type casting and parseInt always with a radix for parsing strings.
+    The parseInt function produces an integer value dictated by interpretation of the contents of the string argument according to the specified radix. Leading whitespace in string is ignored. If radix is undefined or 0, it is assumed to be 10 except when the number begins with the character pairs 0x or 0X, in which case a radix of 16 is assumed
+
+    const inputValue = '4';
+
+    // bad
+    const val = new Number(inputValue);
+
+    // bad
+    const val = +inputValue;
+
+    // bad
+    const val = inputValue >> 0;
+
+    // bad
+    const val = parseInt(inputValue);
+
+    // good
+    const val = Number(inputValue);
+
+    // good
+    const val = parseInt(inputValue, 10);
+
+* If for whatever reason you are doing something wild and parseInt is your bottleneck and need to use Bitshift for performance reasons, leave a comment explaining why and what you’re doing.
+// good
+/**
+ * parseInt was the reason my code was slow.
+ * Bitshifting the String to coerce it to a
+ * Number made it a lot faster.
+ */
+const val = inputValue >> 0;
+
+* Be careful when using bitshift operations. Numbers are represented as 64-bit values, but bitshift operations always return a 32-bit integer (source). 
+    Bitshift can lead to unexpected behavior for integer values larger than 32 bits.
+    Largest signed 32-bit Int is 2,147,483,647:
+
+    2147483647 >> 0; // => 2147483647
+    2147483648 >> 0; // => -2147483648
+    2147483649 >> 0; // => -2147483647
+
+* Booleans:
+    const age = 0;
+
+    // bad
+    const hasAge = new Boolean(age);
+
+    // good
+    const hasAge = Boolean(age);
+
+    // best
+    const hasAge = !!age;
+
+## `Naming Convention`
+* Avoid single letter names. 
+* Be descriptive with your naming.
+* Use camelCase when naming objects, functions, and instances.
+* Use PascalCase only when naming constructors or classes.
+* Do not use trailing or leading underscores.
+* Don’t save references to this. Use arrow functions or Function#bind.
+// bad
+function foo() {
+  const self = this;
+  return function () {
+    console.log(self);
+  };
+}
+
+// bad
+function foo() {
+  const that = this;
+  return function () {
+    console.log(that);
+  };
+}
+
+// good
+function foo() {
+  return () => {
+    console.log(this);
+  };
+}
+
+* A base filename should exactly match the name of its default export.
+    // file 1 contents
+    class CheckBox {
+    // ...
+    }
+    export default CheckBox;
+
+    // file 2 contents
+    export default function fortyTwo() { return 42; }
+
+    // file 3 contents
+    export default function insideDirectory() {}
+
+    // in some other file
+    // bad
+    import CheckBox from './checkBox'; // PascalCase import/export, camelCase filename
+    import FortyTwo from './FortyTwo'; // PascalCase import/filename, camelCase export
+    import InsideDirectory from './InsideDirectory'; // PascalCase import/filename, camelCase export
+
+    // bad
+    import CheckBox from './check_box'; // PascalCase import/export, snake_case filename
+    import forty_two from './forty_two'; // snake_case import/filename, camelCase export
+    import inside_directory from './inside_directory'; // snake_case import, camelCase export
+    import index from './inside_directory/index'; // requiring the index file explicitly
+    import insideDirectory from './insideDirectory/index'; // requiring the index file explicitly
+
+    // good
+    import CheckBox from './CheckBox'; // PascalCase export/import/filename
+    import fortyTwo from './fortyTwo'; // camelCase export/import/filename
+    import insideDirectory from './insideDirectory'; // camelCase export/import/directory name/implicit "index"
+    // ^ supports both insideDirectory.js and insideDirectory/index.js
+
+* Use camelCase when you export-default a function. Your filename should be identical to your function’s name.
+* Use PascalCase when you export a constructor / class / singleton / function library / bare object.
+* Acronyms and initialisms should always be all uppercased, or all lowercased.
+        // bad
+        import SmsContainer from './containers/SmsContainer';
+
+        // bad
+        const HttpRequests = [
+        // ...
+        ];
+
+        // good
+        import SMSContainer from './containers/SMSContainer';
+
+        // good
+        const HTTPRequests = [
+        // ...
+        ];
+
+        // also good
+        const httpRequests = [
+        // ...
+        ];
+
+        // best
+        import TextMessageContainer from './containers/TextMessageContainer';
+
+        // best
+        const requests = [
+        // ...
+        ];
+
+* You may optionally uppercase a constant only if it 
+    (1) is exported, 
+    (2) is a const (it can not be reassigned), and 
+    (3) the programmer can trust it (and its nested properties) to never change.
+
+    // bad
+    const PRIVATE_VARIABLE = 'should not be unnecessarily uppercased within a file';
+
+    // bad
+    export const THING_TO_BE_CHANGED = 'should obviously not be uppercased';
+
+    // bad
+    export let REASSIGNABLE_VARIABLE = 'do not use let with uppercase variables';
+
+    // ---
+
+    // allowed but does not supply semantic value
+    export const apiKey = 'SOMEKEY';
+
+    // better in most cases
+    export const API_KEY = 'SOMEKEY';
+
+    // ---
+
+    // bad - unnecessarily uppercases key while adding no semantic value
+    export const MAPPING = {
+    KEY: 'value'
+    };
+
+    // good
+    export const MAPPING = {
+    key: 'value',
+    };
+
+## `Accessors`
+* Accessor functions for properties are not required.
+* Do not use JavaScript getters/setters as they cause unexpected side effects and are harder to test, maintain, and reason about. Instead, if you do make accessor functions, use getVal() and setVal('hello').
+    // bad
+    class Dragon {
+    get age() {
+        // ...
+    }
+
+    set age(value) {
+        // ...
+    }
+    }
+
+    // good
+    class Dragon {
+    getAge() {
+        // ...
+    }
+
+    setAge(value) {
+        // ...
+    }
+    }
+
+* If the property/method is a boolean, use isVal() or hasVal().
+* It’s okay to create get() and set() functions, but be consistent.
+class Jedi {
+  constructor(options = {}) {
+    const lightsaber = options.lightsaber || 'blue';
+    this.set('lightsaber', lightsaber);
+  }
+
+  set(key, val) {
+    this[key] = val;
+  }
+
+  get(key) {
+    return this[key];
+  }
+}
+
+## `Events`
+When attaching data payloads to events (whether DOM events or something more proprietary like Backbone events), pass an object literal (also known as a "hash") instead of a raw value. 
+This allows a subsequent contributor to add more data to the event payload without finding and updating every handler for the event. 
+For example, instead of:
+    // bad
+    $(this).trigger('listingUpdated', listing.id);
+
+    // ...
+
+    $(this).on('listingUpdated', (e, listingID) => {
+    // do something with listingID
+    });
+
+    prefer:
+    // good
+    $(this).trigger('listingUpdated', { listingID: listing.id });
+
+    // ...
+
+    $(this).on('listingUpdated', (e, data) => {
+    // do something with data.listingID
+    });
+
+## `JQuery`
+* Prefix jQuery object variables with a $.
+// bad
+const sidebar = $('.sidebar');
+
+// good
+const $sidebar = $('.sidebar');
+
+// good
+const $sidebarBtn = $('.sidebar-btn');
+
+* Cache jQuery lookups.
+// bad
+function setSidebar() {
+  $('.sidebar').hide();
+
+  // ...
+
+  $('.sidebar').css({
+    'background-color': 'pink',
+  });
+}
+
+// good
+function setSidebar() {
+  const $sidebar = $('.sidebar');
+  $sidebar.hide();
+
+  // ...
+
+  $sidebar.css({
+    'background-color': 'pink',
+  });
+}
+
+* For DOM queries use Cascading $('.sidebar ul') or parent > child $('.sidebar > ul')
+* Use find with scoped jQuery object queries.
+    // bad
+    $('ul', '.sidebar').hide();
+
+    // bad
+    $('.sidebar').find('ul').hide();
+
+    // good
+    $('.sidebar ul').hide();
+
+    // good
+    $('.sidebar > ul').hide();
+
+    // good
+    $sidebar.find('ul').hide();
+
+## `Standard Library`
+The Standard Library contains utilities that are functionally broken but remain for legacy reasons.
+* Use Number.isNaN instead of global isNaN
+    The global isNaN coerces non-numbers to numbers, returning true for anything that coerces to NaN. If this behavior is desired, make it explicit.
+
+    // bad
+    isNaN('1.2'); // false
+    isNaN('1.2.3'); // true
+
+    // good
+    Number.isNaN('1.2.3'); // false
+    Number.isNaN(Number('1.2.3')); // true
+
+* Use Number.isFinite instead of global isFinite
+    The global isFinite coerces non-numbers to numbers, returning true for anything that coerces to a finite number. If this behavior is desired, make it explicit.
+    // bad
+    isFinite('2e3'); // true
+
+    // good
+    Number.isFinite('2e3'); // false
+    Number.isFinite(parseInt('2e3', 10)); // true
+
+## `Testing`
+1. Whichever testing framework you use, you should be writing tests!
+2. Strive to write many small pure functions, and minimize where mutations occur.
+3. Be cautious about stubs and mocks - they can make your tests more brittle.
+4. We primarily use 
+    mocha and jest at Airbnb. mocha: https://www.npmjs.com/package/mocha  jest: https://www.npmjs.com/package/jest
+    tape is also used occasionally for small, separate modules: https://www.npmjs.com/package/tape
+5. 100% test coverage is a good goal to strive for, even if it’s not always practical to reach it.
+6. Whenever you fix a bug, write a regression test. 
+    A bug fixed without a regression test is almost certainly going to break again in the future.
