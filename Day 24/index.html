@@ -6,6 +6,48 @@
   <title>Document</title>
 </head>
 <body>
+  <script src="insertionSort.js"></script>
+  <script src="selectionSort.js"></script>
   <script src="binarySearch.js"></script>
 </body>
 </html>
+
+<!-- 
+1. Binary Search (Searching a Sorted List):
+  Create an array of numbers sorted in ascending order.
+  Implement a binarySearch function that takes the array and a target number as arguments.
+  The function should iteratively divide the search space in half, compare the target with the middle element, and eliminate half of the possibilities based on the comparison.
+  If the target is found, return its index in the array. Otherwise, return -1 (or any indicator of not found).
+
+2. Selection Sort (Sorting an Unsorted List):
+  Create an array of numbers in any order.
+  Implement a selectionSort function that iterates through the array.
+  In each iteration, find the index of the minimum (or maximum) element in the unsorted portion of the list.
+  Swap the element at the current index with the element at the minimum (or maximum) index.
+  Repeat the process until the entire list is sorted.
+
+3. Linear Search (Searching an Unsorted List):
+  Create an array of elements (numbers or strings).
+  Implement a linearSearch function that takes the array and a target element as arguments.
+  The function should iterate through the array one element at a time, comparing it to the target element.
+  If the target element is found, return its index in the array. Otherwise, return -1 (or any indicator of not found).
+
+4. Hash Table Implementation (Simple Key-Value Lookup):
+  Create a basic hash table data structure using an array.
+  Implement a set function that takes a key and its corresponding value as arguments.
+  Use a hash function (like a simple modulo operation) to map the key to an index in the array.
+  Store the key-value pair at the calculated index or handle collisions (when multiple keys map to the same index).
+  Implement a get function that takes a key as an argument.
+  Use the same hash function to calculate the index and retrieve the corresponding key-value pair (if it exists).
+
+5. Breadth-First Search (Traversing a Tree):
+  Create a tree data structure using objects or classes, representing nodes with values and links to child nodes.
+  Implement a breadthFirstSearch function that takes the root node of the tree as an argument.
+  Use a queue data structure to keep track of nodes to be explored.
+  Enqueue the root node in the queue.
+  While the queue is not empty:
+  Dequeue a node from the queue.
+  Visit the dequeued node (print its value or perform some action).
+  Enqueue all the child nodes of the dequeued node.
+  This will explore all nodes level by level, similar to peeling an onion. 
+-->
